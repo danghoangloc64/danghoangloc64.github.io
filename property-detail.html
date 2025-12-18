@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chi tiết bất động sản - BĐS 3 Miền</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .property-detail {
+            padding: 2rem 0;
+        }
+        
+        .detail-header {
+            margin-bottom: 2rem;
+        }
+        
+        .detail-title {
+            font-size: 2rem;
+            color: #333;
+            margin-bottom: 0.5rem;
+        }
+        
+        .detail-location {
+            color: #666;
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .detail-content {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 2rem;
+        }
+        
+        .detail-main {
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .detail-images {
+            position: relative;
+            height: 400px;
+        }
+        
+        .main-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .image-gallery {
+            display: flex;
+            gap: 0.5rem;
+            padding: 1rem;
+            overflow-x: auto;
+        }
+        
+        .thumb-image {
+            width: 80px;
+            height: 60px;
+            object-fit: cover;
+            border-radius: 5px;
+            cursor: pointer;
+            opacity: 0.7;
+            transition: opacity 0.3s;
+        }
+        
+        .thumb-image.active,
+        .thumb-image:hover {
+            opacity: 1;
+        }
+        
+        .detail-info {
+            padding: 2rem;
+        }
+        
+        .price-section {
+            margin-bottom: 2rem;
+        }
+        
+        .main-price {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #e74c3c;
+            margin-bottom: 0.5rem;
+        }
+        
+        .price-per-m2 {
+            color: #666;
+            font-size: 1rem;
+        }
+        
+        .property-specs {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        
+        .spec-item {
+            text-align: center;
+            padding: 1rem;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+        
+        .spec-icon {
+            font-size: 1.5rem;
+            color: #e74c3c;
+            margin-bottom: 0.5rem;
+        }
+        
+        .spec-value {
+            font-weight: bold;
+            margin-bottom: 0.2rem;
+        }
+        
+        .spec-label {
+            font-size: 0.9rem;
+            color: #666;
+        }
+        
+        .description {
+            margin-bottom: 2rem;
+        }
+        
+        .description h3 {
+            margin-bottom: 1rem;
+            color: #333;
+        }
+        
+        .description p {
+            line-height: 1.8;
+            color: #555;
+        }
+        
+        .detail-sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+        
+        .contact-card {
+            background: white;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        
+        .agent-info {
+            margin-bottom: 2rem;
+        }
+        
+        .agent-avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            margin: 0 auto 1rem;
+            background: #e74c3c;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 2rem;
+        }
+        
+        .agent-name {
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+        
+        .agent-role {
+            color: #666;
+            font-size: 0.9rem;
+        }
+        
+        .contact-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        
+        .btn-contact {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+        
+        .similar-properties {
+            background: white;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .similar-properties h3 {
+            margin-bottom: 1.5rem;
+            color: #333;
+        }
+        
+        .similar-item {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .similar-item:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+        }
+        
+        .similar-image {
+            width: 80px;
+            height: 60px;
+            object-fit: cover;
+            border-radius: 5px;
+        }
+        
+        .similar-info {
+            flex: 1;
+        }
+        
+        .similar-title {
+            font-weight: 500;
+            margin-bottom: 0.3rem;
+            font-size: 0.9rem;
+        }
+        
+        .similar-price {
+            color: #e74c3c;
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+        
+        @media (max-width: 768px) {
+            .detail-content {
+                grid-template-columns: 1fr;
+            }
+            
+            .property-specs {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .main-price {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="nav-brand">
+                <h1><i class="fas fa-home"></i> BĐS 3 Miền</h1>
+            </div>
+            <nav class="nav-menu">
+                <a href="index.html" class="nav-link">Trang chủ</a>
+                <a href="#" class="nav-link">Nhà đất bán</a>
+                <a href="#" class="nav-link">Nhà đất thuê</a>
+                <a href="#" class="nav-link">Dự án</a>
+                <a href="#" class="nav-link">Tin tức</a>
+            </nav>
+            <div class="nav-actions">
+                <button class="btn btn-outline">Đăng nhập</button>
+                <button class="btn btn-primary">Đăng tin</button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Property Detail -->
+    <section class="property-detail">
+        <div class="container">
+            <div class="detail-header">
+                <h1 class="detail-title" id="propertyTitle">Đang tải...</h1>
+                <div class="detail-location" id="propertyLocation">
+                    <i class="fas fa-map-marker-alt"></i>
+                    <span>Đang tải...</span>
+                </div>
+            </div>
+
+            <div class="detail-content">
+                <div class="detail-main">
+                    <div class="detail-images">
+                        <img id="mainImage" class="main-image" src="" alt="Hình ảnh bất động sản">
+                    </div>
+                    
+                    <div class="image-gallery" id="imageGallery">
+                        <!-- Thumbnails will be loaded here -->
+                    </div>
+
+                    <div class="detail-info">
+                        <div class="price-section">
+                            <div class="main-price" id="propertyPrice">Đang tải...</div>
+                            <div class="price-per-m2" id="pricePerM2">Đang tải...</div>
+                        </div>
+
+                        <div class="property-specs" id="propertySpecs">
+                            <!-- Specs will be loaded here -->
+                        </div>
+
+                        <div class="description">
+                            <h3>Mô tả chi tiết</h3>
+                            <p id="propertyDescription">
+                                Đang tải thông tin mô tả...
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="detail-sidebar">
+                    <div class="contact-card">
+                        <div class="agent-info">
+                            <div class="agent-avatar">
+                                <i class="fas fa-user"></i>
+                            </div>
+                            <div class="agent-name">Nguyễn Văn A</div>
+                            <div class="agent-role">Chủ nhà</div>
+                        </div>
+                        
+                        <div class="contact-actions">
+                            <button class="btn btn-primary btn-contact" onclick="showPhone()">
+                                <i class="fas fa-phone"></i>
+                                <span id="phoneNumber">09***678</span>
+                            </button>
+                            <button class="btn btn-outline btn-contact" onclick="openChat()">
+                                <i class="fas fa-comments"></i>
+                                Chat ngay
+                            </button>
+                            <button class="btn btn-outline btn-contact" onclick="saveProperty()">
+                                <i class="fas fa-heart"></i>
+                                Lưu tin
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="similar-properties">
+                        <h3>Tin đăng tương tự</h3>
+                        <div id="similarProperties">
+                            <!-- Similar properties will be loaded here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h4>BĐS 3 Miền</h4>
+                    <p>Nền tảng bất động sản hàng đầu Việt Nam</p>
+                </div>
+                <div class="footer-section">
+                    <h4>Liên kết</h4>
+                    <a href="#">Về chúng tôi</a>
+                    <a href="#">Liên hệ</a>
+                    <a href="#">Hỗ trợ</a>
+                </div>
+                <div class="footer-section">
+                    <h4>Dịch vụ</h4>
+                    <a href="#">Đăng tin miễn phí</a>
+                    <a href="#">Gói VIP</a>
+                    <a href="#">Quảng cáo</a>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2024 BĐS 3 Miền. Tất cả quyền được bảo lưu.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+    <script src="property-detail.js"></script>
+</body>
+</html>
