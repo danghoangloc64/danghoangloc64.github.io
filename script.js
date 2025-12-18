@@ -342,12 +342,348 @@ function mockApiCall(filters) {
     });
 }
 
+// Mobile Menu Functions
+function toggleMobileMenu() {
+    const navMenu = document.querySelector('.nav-menu');
+    const menuToggle = document.querySelector('.mobile-menu-toggle');
+    
+    navMenu.classList.toggle('mobile-active');
+    menuToggle.classList.toggle('active');
+    
+    // Prevent body scroll when menu is open
+    if (navMenu.classList.contains('mobile-active')) {
+        document.body.style.overflow = 'hidden';
+    } else {
+        document.body.style.overflow = '';
+    }
+}
+
+// Close mobile menu when clicking outside
+document.addEventListener('click', function(e) {
+    const navMenu = document.querySelector('.nav-menu');
+    const menuToggle = document.querySelector('.mobile-menu-toggle');
+    
+    if (navMenu.classList.contains('mobile-active') && 
+        !navMenu.contains(e.target) && 
+        !menuToggle.contains(e.target)) {
+        toggleMobileMenu();
+    }
+});
+
+// Close mobile menu when clicking on nav links
+document.querySelectorAll('.nav-link').forEach(link => {
+    link.addEventListener('click', function() {
+        const navMenu = document.querySelector('.nav-menu');
+        if (navMenu.classList.contains('mobile-active')) {
+            toggleMobileMenu();
+        }
+    });
+});
+
+// Touch and swipe support for property cards on mobile
+let touchStartX = 0;
+let touchEndX = 0;
+
+function handleTouchStart(e) {
+    touchStartX = e.changedTouches[0].screenX;
+}
+
+function handleTouchEnd(e) {
+    touchEndX = e.changedTouches[0].screenX;
+    handleSwipe();
+}
+
+function handleSwipe() {
+    const swipeThreshold = 50;
+    const diff = touchStartX - touchEndX;
+    
+    if (Math.abs(diff) > swipeThreshold) {
+        const propertiesGrid = document.getElementById('propertiesGrid');
+        if (window.innerWidth <= 768 && propertiesGrid) {
+            if (diff > 0) {
+                // Swipe left - scroll right
+                propertiesGrid.scrollBy({ left: 300, behavior: 'smooth' });
+            } else {
+                // Swipe right - scroll left
+                propertiesGrid.scrollBy({ left: -300, behavior: 'smooth' });
+            }
+        }
+    }
+}
+
+// Add touch events to properties grid
+document.addEventListener('DOMContentLoaded', function() {
+    const propertiesGrid = document.getElementById('propertiesGrid');
+    if (propertiesGrid) {
+        propertiesGrid.addEventListener('touchstart', handleTouchStart, { passive: true });
+        propertiesGrid.addEventListener('touchend', handleTouchEnd, { passive: true });
+    }
+});
+
+// Mobile-specific optimizations
+function isMobile() {
+    return window.innerWidth <= 768;
+}
+
+// Optimize scroll performance on mobile
+let ticking = false;
+
+function updateScrollPosition() {
+    const scrolled = window.pageYOffset;
+    const rate = scrolled * -0.5;
+    
+    // Update parallax effects only on desktop
+    if (!isMobile()) {
+        const heroBackground = document.querySelector('.hero-background');
+        if (heroBackground) {
+            heroBackground.style.transform = `translateY(${rate}px)`;
+        }
+    }
+    
+    ticking = false;
+}
+
+function requestTick() {
+    if (!ticking) {
+        requestAnimationFrame(updateScrollPosition);
+        ticking = true;
+    }
+}
+
+window.addEventListener('scroll', requestTick, { passive: true });
+
+// Lazy loading for images on mobile
+function lazyLoadImages() {
+    const images = document.querySelectorAll('img[data-src]');
+    const imageObserver = new IntersectionObserver((entries, observer) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                const img = entry.target;
+                img.src = img.dataset.src;
+                img.classList.remove('lazy');
+                imageObserver.unobserve(img);
+            }
+        });
+    });
+
+    images.forEach(img => imageObserver.observe(img));
+}
+
+// Initialize lazy loading
+document.addEventListener('DOMContentLoaded', lazyLoadImages);
+
+// Pull to refresh functionality (basic implementation)
+let startY = 0;
+let currentY = 0;
+let pullDistance = 0;
+const pullThreshold = 100;
+
+function handlePullStart(e) {
+    if (window.pageYOffset === 0) {
+        startY = e.touches[0].clientY;
+    }
+}
+
+function handlePullMove(e) {
+    if (window.pageYOffset === 0 && startY) {
+        currentY = e.touches[0].clientY;
+        pullDistance = currentY - startY;
+        
+        if (pullDistance > 0) {
+            e.preventDefault();
+            const pullIndicator = document.querySelector('.pull-to-refresh');
+            if (pullIndicator) {
+                if (pullDistance > pullThreshold) {
+                    pullIndicator.classList.add('active');
+                    pullIndicator.textContent = 'Thả để làm mới';
+                } else {
+                    pullIndicator.textContent = 'Kéo để làm mới';
+                }
+            }
+        }
+    }
+}
+
+function handlePullEnd(e) {
+    if (pullDistance > pullThreshold) {
+        // Trigger refresh
+        refreshContent();
+    }
+    
+    const pullIndicator = document.querySelector('.pull-to-refresh');
+    if (pullIndicator) {
+        pullIndicator.classList.remove('active');
+    }
+    
+    startY = 0;
+    currentY = 0;
+    pullDistance = 0;
+}
+
+function refreshContent() {
+    // Simulate content refresh
+    showLoading();
+    setTimeout(() => {
+        loadProperties();
+    }, 1000);
+}
+
+// Add pull to refresh events
+if (isMobile()) {
+    document.addEventListener('touchstart', handlePullStart, { passive: false });
+    document.addEventListener('touchmove', handlePullMove, { passive: false });
+    document.addEventListener('touchend', handlePullEnd, { passive: true });
+}
+
+// Viewport height fix for mobile browsers
+function setViewportHeight() {
+    const vh = window.innerHeight * 0.01;
+    document.documentElement.style.setProperty('--vh', `${vh}px`);
+}
+
+window.addEventListener('resize', setViewportHeight);
+setViewportHeight();
+
+// Enhanced property card creation for mobile
+function createMobileOptimizedCard(property) {
+    const bedroomInfo = property.bedrooms > 0 ? `${property.bedrooms} PN` : '';
+    const bathroomInfo = property.bathrooms > 0 ? `${property.bathrooms} WC` : '';
+    const details = [bedroomInfo, bathroomInfo, property.area].filter(Boolean).join(' • ');
+    
+    return `
+        <div class="property-card swipe-item" onclick="viewProperty(${property.id})" data-id="${property.id}">
+            <div class="property-image" style="background-image: url('${property.image}')">
+                ${property.isVip ? '<div class="property-badge vip"><i class="fas fa-crown"></i> VIP</div>' : '<div class="property-badge">Thường</div>'}
+                <button class="property-favorite" onclick="toggleFavorite(${property.id}, event)" aria-label="Yêu thích">
+                    <i class="far fa-heart"></i>
+                </button>
+            </div>
+            <div class="property-info">
+                <div class="property-price">${property.price}</div>
+                <div class="property-title">${property.title}</div>
+                <div class="property-location">
+                    <i class="fas fa-map-marker-alt"></i>
+                    ${property.location}
+                </div>
+                <div class="property-details">${details}</div>
+                <div class="property-actions">
+                    <button class="btn-action" onclick="callProperty(${property.id}, event)">
+                        <i class="fas fa-phone"></i>
+                    </button>
+                    <button class="btn-action" onclick="chatProperty(${property.id}, event)">
+                        <i class="fas fa-comments"></i>
+                    </button>
+                    <button class="btn-action" onclick="shareProperty(${property.id}, event)">
+                        <i class="fas fa-share"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+// Mobile-specific property actions
+function toggleFavorite(id, event) {
+    event.stopPropagation();
+    const button = event.currentTarget;
+    const icon = button.querySelector('i');
+    
+    if (icon.classList.contains('far')) {
+        icon.classList.remove('far');
+        icon.classList.add('fas');
+        button.classList.add('favorited');
+        showToast('Đã thêm vào yêu thích');
+    } else {
+        icon.classList.remove('fas');
+        icon.classList.add('far');
+        button.classList.remove('favorited');
+        showToast('Đã xóa khỏi yêu thích');
+    }
+}
+
+function callProperty(id, event) {
+    event.stopPropagation();
+    // Simulate phone call
+    showToast('Đang kết nối cuộc gọi...');
+}
+
+function chatProperty(id, event) {
+    event.stopPropagation();
+    // Open chat
+    showToast('Mở chat...');
+}
+
+function shareProperty(id, event) {
+    event.stopPropagation();
+    
+    if (navigator.share) {
+        const property = sampleProperties.find(p => p.id === id);
+        navigator.share({
+            title: property.title,
+            text: `${property.title} - ${property.price}`,
+            url: `${window.location.origin}/property-detail.html?id=${id}`
+        });
+    } else {
+        // Fallback for browsers without Web Share API
+        const url = `${window.location.origin}/property-detail.html?id=${id}`;
+        navigator.clipboard.writeText(url).then(() => {
+            showToast('Đã copy link vào clipboard');
+        });
+    }
+}
+
+// Toast notification system
+function showToast(message, duration = 3000) {
+    const toast = document.createElement('div');
+    toast.className = 'toast';
+    toast.textContent = message;
+    
+    // Add toast styles if not already added
+    if (!document.querySelector('#toast-styles')) {
+        const style = document.createElement('style');
+        style.id = 'toast-styles';
+        style.textContent = `
+            .toast {
+                position: fixed;
+                bottom: 2rem;
+                left: 50%;
+                transform: translateX(-50%);
+                background: rgba(0, 0, 0, 0.8);
+                color: white;
+                padding: 0.75rem 1.5rem;
+                border-radius: var(--radius-lg);
+                font-size: 0.875rem;
+                z-index: 10000;
+                opacity: 0;
+                transition: opacity 0.3s ease;
+            }
+            .toast.show {
+                opacity: 1;
+            }
+        `;
+        document.head.appendChild(style);
+    }
+    
+    document.body.appendChild(toast);
+    
+    // Show toast
+    setTimeout(() => toast.classList.add('show'), 100);
+    
+    // Hide and remove toast
+    setTimeout(() => {
+        toast.classList.remove('show');
+        setTimeout(() => document.body.removeChild(toast), 300);
+    }, duration);
+}
+
 // Export functions for testing
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = {
         sampleProperties,
         createPropertyCard,
         filterProperties,
-        checkPriceRange
+        checkPriceRange,
+        toggleMobileMenu,
+        isMobile
     };
 }
